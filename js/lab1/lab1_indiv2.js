@@ -1,5 +1,7 @@
 // 2. Найти факториал числа: программа вычисляет факториал введенного числа.
 
+// cherenkov
+
 const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
