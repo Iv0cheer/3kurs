@@ -1,5 +1,7 @@
 // 3. Вывести все четные числа до N: программа выводит все четные числа от 1 до N.
 
+// cherenkov
+
 const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
