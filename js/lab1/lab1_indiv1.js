@@ -1,6 +1,8 @@
 // 1. Определить среднее арифметическое чисел от 1 до N: программа вычисляет
 // среднее арифметическое.
 
+// cherenkov
+
 const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
