@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #1a1a1a;
+    color: white;
+}
+
+h1 {
+    margin: 20px;
+}
+
+.constellations {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.constellation {
+    position: relative;
+    margin: 20px;
+    width: 30%;
+    max-width: 200px;
+}
+
+.constellation img {
+    width: 150px;
+    height: auto;
+    border: 2px solid white;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.constellation img:hover {
+    transform: scale(1.1);
+    border: 2px solid rgb(116, 0, 224);
+}
+
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+    pointer-events: none;
+    z-index: 1000;
+    text-align: left;
+}
