@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+    <link href="./style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="main-centered-container">
+        <h1>Создание прогнозной модели на основе логистической регрессии</h1>
+        <h2>Изучение базовых блоков TensorFlow.js с помощью обучения без учителя</h2>
+        <h3 class="header-border">Введение</h3>
+        <p>
+            В этом веб-приложении обучим модель логистической регрессии для прогнозирования результатов на тестовом наборе данных.
+        </p>
+        <p>
+            <b class="keywords">Логистическая регрессия</b> — это контролируемое обучение и статистический подход,
+            который ищет модель связи между набором независимых переменных,
+            также известных как предикторы, и дискретной зависимой переменной,
+            известной как цель или целевая функция. Другими словами, он использует набор
+            атрибутов или «признаков», чтобы научиться классифицировать их в категорию.
+
+        </p>
+        <p>
+            В случае бинарной логистической регрессионной модели,
+             эта целевая переменная имеет два возможных значения,
+            например, «0» или «1», «спам» или «не спам», или «кошка» или «собака». Именно поэтому
+            она называется статистической моделью, вместо того, чтобы напрямую производить эти виды ответов,
+            выход алгоритма представляет собой вероятность случая по умолчанию. Например, предположим, что
+            дана модель прогнозирования того, является ли сообщение спамом или нет. Ее выход представляет собой значение
+            от 0 до 1, где 1 означает, что модель на 100% уверена,
+            что это сообщение является «спамом», а 0 указывает на то, что сообщение с вероятностью 0% является спамом.
+            Обычно пороговое значение составляет 0.5, это означает, что все, что выше этого числа, считается «истинным»
+            ответом, например, «спам», в то время как любое значение &#8804; 0.5 — «ложный» («без спама»).
+        </p> 
+        <p>Набор данных этого упражнения — синтетический. Он состоит из 700 наблюдений
+            двух нормально распределенных признаков и его целевой переменной под названием «метка».
+            Данные равномерно рапспределены, 349 точек принадлежат классу «0», а 351 — классу «1».
+            Чтобы сделать набор данных подходящим для задачи классификации, между признаками есть взаимозависимость.
+        </p>
+        <h3 class="header-border">Визуализация набора данных с помощью tfjs-vis</h3>
+        <p>Отобразим набор данных в виде диаграммы рассеяния. Для этого нажмите следующую кнопку.</p>
+        <div id="visualize"></div>
+
+        <p>
+            В правой части экрана вы должны увидеть вкладку
+            или <b class="keywords">visor</b>, отображающую набор данных.
+            Внизу графика находятся наблюдения, принадлежащие классу "0", в то время как верхняя центральная
+            область содержит класс "1". Поскольку между обоими классами есть явный разрыв
+            (за исключением минимального шума), модель должна быстро найти различие.
+        </p>
+        <p>
+            Чтобы закрыть или открыть визор, нажмите клавишу с обратной кавычкой <code>`</code>".
+        </p>
+        <h3>Обучение модели</h3>
+        <p>
+            Модель, которую собираемся обучить, — это последовательная однослойная модель TensorFlow.js.
+            <p><span class="highlight">Input shape (входная форма данных):</span> размерность входных данных равна 2. Это означает, что каждый входной пример должен состоять из двух значений.
+            </p>
+            <p><span class="highlight">Number of units (количество нейронов):</span> в слое всего один нейрон.
+            </p>
+             <p><span class="highlight">Activation function (функция активации):</span> используется сигмоида. Эта функция преобразует выходные значения слоя в диапазон от 0 до 1, что часто используется для задач классификации.
+             </p>
+            Вот как выглядит определение:
+        </p>
+
+        <pre class="code-block">
+            <code>
+                // <span class="comment">Определение модель.</span>
+                const <span class="keyword">model</span> = <span class="function">tf.sequential</span>();
+
+                // <span class="comment">Добавление плотного слоя (Dense) в последовательную модель (Sequential).</span>
+                <span class="keyword">model</span>.add(<span class="function">tf.layers.dense</span>({
+                    <span class="property">inputShape</span>: [<span class="variable">numOfFeatures</span>],
+                    <span class="property">units</span>: 1,
+                    <span class="property">activation</span>: '<span class="value">sigmoid</span>',
+                }));
+            </code>
+    </pre>
+        <div class="text-section">
+            <p>
+                <span class="highlight">После определения модели</span> следующим шагом является её компиляция, что означает подготовку всех слоёв и конфигурации модели к обучению.
+                На этом этапе необходимо указать <span class="highlight">оптимизатор</span>, <span class="highlight">функцию потерь</span> и <span class="highlight">метрику оценки</span>.
+            </p>
+            <p>
+                В нашем случае это <span class="value">Adam</span>, <span class="value">бинарная кроссэнтропия</span> и <span class="value">точность</span>, соответственно. Вот пример кода:
+            </p>
+        </div>
+        <pre class="code-block">
+            <code>
+            <span class="keyword">model</span>.compile({
+                <span class="property">optimizer</span>: <span class="function">tf.train.adam</span>(<span class="value">0.1</span>),
+                <span class="property">loss</span>: '<span class="value">binaryCrossentropy</span>',
+                <span class="property">metrics</span>: [<span class="value">'accuracy'</span>]
+            });
+            </code>
+        </pre>
+        <div class="container">
+            <div class="section">
+                <img src="img/image01.png" alt="Иконка оптимизатора" class="icon">
+                <p><span class="highlight">Оптимизатор</span> — это алгоритм, используемый для минимизации функции потерь и корректировки параметров модели во время обучения. Например: <span class="value">Adam</span>.</p>
+            </div>
+            <img src="img/optimizers.gif" alt="Фото оптимизатора" class="photo-after-block">
+            <div class="section">
+                <img src="img/crosloss.png" alt="Иконка функции потерь" class="icon">
+                <p><span class="highlight">Функция потерь</span> определяет, насколько предсказания модели отличаются от реальных значений. Например: <span class="value">Бинарная кросс-энтропия</span>.</p>
+            </div>
+            <div class="section">
+                <img src="img/acc.png" alt="Иконка метрики оценки" class="icon">
+                <p><span class="highlight">Метрика оценки</span> используется для измерения качества работы модели. Пример: <span class="value">Accuracy</span>.</p>
+            </div>
+        </div>
+
+
+
+        <p>
+            Вызываем функцию <code>fitDataset</code> для подгонки модели.
+            В этой функции указываем количество эпох &mdash; количество раз, когда полный набор обучающих данных
+            проходит в модели &mdash; две функции обратного вызова, которые выполняются в конце каждой эпохи,
+            и последняя - выводит сообщение об окончании процесса обучения.
+            Первая из этих функций отображает потерю обучения и эволюцию точности в визоре tfjs-vis,
+            а вторая выводит журнал в консоль. Описание функции.
+        </p>
+        <pre class="code-block">
+<code>
+await <span class="keyword">model</span>.fitDataset(flattenedDataset, {
+    epochs: <span class="variable">numberEpochs</span>,
+    callbacks: [
+        <span class="function">tfvis.show.fitCallbacks</span>(
+            <span class="variable">trainingSurface</span>,
+            ['<span class="value">loss</span>', '<span class="value">acc</span>'],
+            { callbacks: ['<span class="value">onEpochEnd</span>'] }
+        ),
+        {
+            <span class="function">onEpochEnd</span>: async (<span class="variable">epoch</span>, <span class="variable">logs</span>) => {
+                <span class="function">console.log</span>(<span class="variable">epoch</span> + ':' + <span class="variable">logs.loss</span>);
+            }
+        },
+        {
+            <span class="function">onTrainEnd</span>: async (<span class="variable">logs</span>) => {
+                <span class="function">console.log</span>('Обучение модели завершено.');
+            }
+        }
+    ],
+});
+</code>
+    </pre>
+        <p>
+            Установить вручную количество эпох в поле ниже.
+        </p>
+
+        <h3 class="header-border">Введите количество эпох</h3>
+        <label for="number-epochs">Количество эпох (от 1 до 20):</label>
+        <input type="number" id="number-epochs" name="number-epochs" min="1" max="20" value="5" style="width: 5em">
+        <h3 class="header-border">Введите пороговое значение точности</h3>
+        <label for="accuracy-threshold">Пороговое значение точности (от 0 до 1):</label>
+        <input type="number" id="accuracy-threshold" name="accuracy-threshold" min="0" max="1" step="0.01" value="0.5" style="width: 5em">
+        <h3 class="header-border">Нажмите, чтобы обучить модель</h3>
+        <div id="train"></div>
+        <p>
+            После начала обучения модели на экране увидим две динамические линии, которые изменяются со временем. Эти значения представляют собой потери(<span class="value">loss</span>) и точность(<span class="value">Accuracy</span>) обучения в конце каждой эпохи.
+        </p>
+        <h3 class="header-border">Нажмите, чтобы визуализировать ошибки</h3>
+        <div id="vis"></div>
+        <script src="./index.js"></script>
+    </div>
+</body>
+
+</html>
